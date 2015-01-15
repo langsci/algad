@@ -1,0 +1,44 @@
+% $ biblatex auxiliary file $
+% $ biblatex version 1.7 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\entry{Comrie1981}{book}{}
+  \name{author}{1}{}{%
+    {{}%
+     {Comrie}{C.}%
+     {Bernard}{B.}%
+     {}{}%
+     {}{}}%
+  }
+  \list{publisher}{1}{%
+    {Basil Blackwell}%
+  }
+  \strng{namehash}{CB1}
+  \strng{fullhash}{CB1}
+  \field{labelyear}{1981}
+  \field{sortinit}{C}
+  \field{title}{Language Universals and Linguistic Typology}
+  \list{location}{1}{%
+    {Oxford}%
+  }
+  \field{year}{1981}
+\endentry
+
+\lossort
+\endlossort
+
+\endinput
