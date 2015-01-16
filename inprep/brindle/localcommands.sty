@@ -1,12 +1,33 @@
 %add all your local new commands to this file
+\newcommand{\newentry}{\par}
+\newcommand{\homograph}[1]{\setlength{\parindent}{-1mm}%
+			  {\textsuperscript{#1}}%
+			  \setlength{\parindent}{0mm}%
+			  }
+\newcommand{\ipa}[1]{{[#1]}}
+\newcommand{\pos}[1]{{\itshape\large #1}}
+\newcommand{\synpos}[1]{{\itshape #1}}
+\newcommand{\headword}[1]{{\bfseries #1}\markboth{#1}{#1}}
+\newcommand{\sensenr}[1]{{\bfseries\itshape #1}}
+\newcommand{\definition}[1]{{#1}}
+\newcommand{\exnr}[1]{{(#1)}}
+\newcommand{\vernacular}[1]{}
+\newcommand{\modvernacular}[1]{{\slshape #1}}
+\newcommand{\trs}[1]{{#1}}
+\newcommand{\fixme}{\todo[inline]{FIXME}}
+\newcommand{\fixpos}{{\color{orange}{pos?}}}
+\newcommand{\fixpron}{{\color{green}{[IPA?]}}}
+\newcommand{\fixdef}{{\color{red}{definition?}}}
 
-\newenvironment{listLileveli}{\begin{enumerate}}{\end{enumerate}}
-\newenvironment{listLilevelii}{\begin{enumerate}}{\end{enumerate}}
-\newenvironment{listLileveliii}{\begin{enumerate}}{\end{enumerate}}
-\newenvironment{listLileveliv}{\begin{enumerate}}{\end{enumerate}}
-\newenvironment{listLiileveli}{\begin{itemize}}{\end{itemize}}
-\newenvironment{listLiilevelii}{\begin{itemize}}{\end{itemize}}
-\newenvironment{listLiileveliii}{\begin{itemize}}{\end{itemize}}
-\newenvironment{listLiileveliv}{\begin{itemize}}{\end{itemize}} 
-
-
+\newenvironment{letter}[1]{%
+\begin{multicols}{2}[%
+% \addvspace{1.5\baselineskip}%
+\scalebox{1.5}{\bfseries\Huge #1}%
+% \hline
+\addcontentsline{toc}{section}{#1}%
+\addvspace{.1\baselineskip}
+\hline
+\addvspace{1\baselineskip}
+]%
+}{%
+\end{multicols}}

@@ -11,7 +11,7 @@
 % Some lines start with %. Remove the % to include them
 
 \documentclass[number=??                 %replace by your number in series
-                ,series=cfls,     % Choose series abbreviation as appropriate
+                ,series=algad,     % Choose series abbreviation as appropriate
                 ,isbn=978-3-000000-00-0, %add your isbn here
                 ,url=http://langsci-press.org/catalog/book/0,  %change to the running number of your book
 	        ,output=long             % long|short|inprep              
@@ -66,11 +66,27 @@
 %%%                                              %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\include{chapters/01}  %add a percentage sign in front of the line to exclude this chapter from book
-\include{chapters/02}
-\include{chapters/03}
+\newpage
+\lipsum
+\newpage
+\part{Dictionary}
+
+
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\fancyhead[LE,LO]{\textbf{\rightmark}} 
+\fancyhead[RE,RO]{\textbf{\leftmark}}
+\renewcommand{\headrulewidth}{0pt}
+
+\fancyfoot[LE,RO]{\thepage}
+
+
+\setlength{\parindent}{0pt} 
+\include{chapters/dictionary}  %add a percentage sign in front of the line to exclude this chapter from book
+
 % copy the lines above and adapt as necessary
- 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%                                              %%%
