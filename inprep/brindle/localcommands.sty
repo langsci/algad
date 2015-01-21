@@ -1,9 +1,13 @@
 %add all your local new commands to this file
 \newcommand{\newentry}{\par}
-\newcommand{\homograph}[1]{\setlength{\parindent}{-1mm}%
-			  {\textsuperscript{#1}}%
-			  \setlength{\parindent}{0mm}%
-			  }
+\newcommand{\homograph}[1]{\hspace*{-1.5mm}%
+			  \textsuperscript{%  
+			  \framebox[1cm]{% 
+				    \raggedleft%
+			              #1%
+			             }%
+			  }%
+			  } 
 \newcommand{\ipa}[1]{{[#1]}}
 \newcommand{\pos}[1]{{\itshape\large #1}}
 \newcommand{\synpos}[1]{{\itshape #1}}
@@ -14,10 +18,10 @@
 \newcommand{\vernacular}[1]{}
 \newcommand{\modvernacular}[1]{{\slshape #1}}
 \newcommand{\trs}[1]{{#1}}
-\newcommand{\fixme}{\todo[inline]{FIXME}}
-\newcommand{\fixpos}{{\color{orange}{pos?}}}
-\newcommand{\fixpron}{{\color{green}{[IPA?]}}}
-\newcommand{\fixdef}{{\color{red}{definition?}}}
+% \newcommand{\fixme}{\todo[inline]{FIXME}}
+% \newcommand{\fixpos}{{\color{orange}{pos?}}}
+% \newcommand{\fixpron}{{\color{green}{[IPA?]}}}
+% \newcommand{\fixdef}{{\color{red}{definition?}}}
 
 \newenvironment{letter}[1]{%
 \begin{multicols}{2}[%
