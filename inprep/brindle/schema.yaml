@@ -1,9 +1,4 @@
  LexEntry
-    LexEntryRefLink
-        LexEntryRefLink_OwningEntry
-            Link
-        LexEntryRef_VariantEntryTypes
-            Link
     LexEntry_Etymology
         LexEntry_Etymology
             LexEtymology
@@ -12,7 +7,7 @@
                 LexEtymology_Gloss 
                     Astr
                 LexEtymology_Source  
-                    Astr
+                    Auni
     LexEntry_HeadWord		
         Astr
     LexEntry_LiteralMeaning
@@ -21,6 +16,23 @@
         LexPronunciation
             LexPronunciation_Form
                 Astr 
+    MinimalLexReferences
+        LexReferenceLink
+            LexReferenceLink_Type
+                Link
+            LexReference_Targets 
+                Link
+    VariantFormEntryBackRefs
+        LexEntryRefLink
+            LexEntryRefLink_OwningEntry
+                Link
+            LexEntryRef_VariantEntryTypes
+                Link
+    LexEntry_plural_form
+        Str
+    MoStemMsa
+        MoStemMsa_MLPartOfSpeech
+            Astr
     LexEntry_Senses
           LexEntry_Senses
               LexSense
@@ -34,36 +46,27 @@
                               LexExampleSentence_Translations
                                   CmTranslation
                                       CmTranslation_Translation
-                                            Astr					      
-                  LexSense_Gloss
-                      LexSense_Gloss
-                          Astr
-                    LexSense_LexSenseReferences
-                          LexSense_LexSenseReferences
-                                LexReferenceLink
-                                    LexReferenceLink_Type
-                                        Link
-                                    LexReference_Targets
-                                        LexReference_Targets
-                                            Link
-                    LexSense_ScientificName		
+                                            Astr	
+                  LexSense_LexSenseReferences 
+                      LexReferenceLink
+                          LexReferenceLink_Type
+                              Link
+                          LexReference_Targets 
+                              Link
+                  LexSense_ScientificName		
+                      Str
+                  LexSense_UsageTypes
+                      Link
+                  LexSense_VariantFormEntryBackRefs
+                      LexEntryRefLink
+                          LexEntryRefLink
+                              LexEntryRefLink_OwningEntry
+                                  Link
+                              LexEntryRef_VariantEntryTypes
+                                  Link
+                  LexSense_lexical_function_glosses
                         Str
-                    LexSense_UsageTypes
-                        Link
-                    LexSense_VariantFormEntryBackRefs
-                        LexEntryRefLink
-                            LexEntryRefLink
-                                LexEntryRefLink_OwningEntry
-                                    Link
-                                LexEntryRef_VariantEntryTypes
-                                    Link
-                    LexSense_lexical_function_glosses
-                          Str
-                    MoMorphSynAnalysisLink_MLPartOfSpeech
-                          Astr	
-    LexEntry_plural_form
-        Str
-    LexReferenceLink
-    MoStemMsa
-        MoStemMsa_MLPartOfSpeech
-            Astr
+                  MoMorphSynAnalysisLink_MLPartOfSpeech
+                        Astr	                                      
+                  LexSense_Gloss
+                          Astr
