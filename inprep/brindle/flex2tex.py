@@ -15,7 +15,8 @@ def getText(e,field,strtype):
       
 
 def label2latex(s):
-    return "\\hypertarget{%s}{}" % s
+    pass
+    #return "\\hypertarget{%s}{}" % s
 
 class LexEntry():
   
@@ -43,7 +44,7 @@ class LexEntry():
     
     def toLatex(self): 
 	self.headword.toLatex()
-	print label2latex(self.label)
+	#print label2latex(self.label)
 	if len(self.pronunciations) == 0:
 	    print '{\\fixpron}'
 	for p in self.pronunciations:
@@ -90,61 +91,61 @@ class Pronunciation():
 	print cmd('ipa',self.ipa, indent=1).encode('utf-8')
     
 class Sense():
-  def __init__(self,s):
-    self.definition = getText(s,'LexSense_Definition','AStr')
-    self.examples = [Example(x) for x in s.findall('.//LexExampleSentence')]     
-    self.references = [LexReflink(l) for l in (s.findall('.//LexReferenceLink'))]
-    self.scientificname = getText(s,'LexSense_ScientificName','Str')
-    self.usagetypes = [a.attrib['name'] for a in (s.findall('LexSense_UsageTypes/Link/Alt'))]
-    try:
-      self.lsveferbs = [Veferbs(l) for l in (s.find('LexEntryRef_VariantEntryTypes'))]
-    except TypeError:
-      pass
-    self.lfg = getText(s,'LexSense_lexical_function_glosses','Str')
-    self.synpos = getText(s,'MoMorphSynAnalysisLink_MLPartOfSpeech','AStr')
-    self.lsgloss = getText(s,'LexSense_Gloss','AStr') 
-  
-  def toLatex(self,number=False):
-    if number:
-      print cmd('sensenr',number,indent=1)
-    print cmd('synpos',self.synpos,indent=2).encode('utf-8')
-    print cmd('definition',self.definition,indent=3).encode('utf-8')
-    if len(self.examples) == 1:
-      self.examples[0].toLatex()
-    else:
-      for i,example in enumerate(self.examples): 
-	example.toLatex(number=i+1)
-	
+    def __init__(self,s):
+	self.definition = getText(s,'LexSense_Definition','AStr')
+	self.examples = [Example(x) for x in s.findall('.//LexExampleSentence')]     
+	self.references = [LexReflink(l) for l in (s.findall('.//LexReferenceLink'))]
+	self.scientificname = getText(s,'LexSense_ScientificName','Str')
+	self.usagetypes = [a.attrib['name'] for a in (s.findall('LexSense_UsageTypes/Link/Alt'))]
+	try:
+	    self.lsveferbs = [Veferbs(l) for l in (s.find('LexEntryRef_VariantEntryTypes'))]
+	except TypeError:
+	    pass
+	self.lfg = getText(s,'LexSense_lexical_function_glosses','Str')
+	self.synpos = getText(s,'MoMorphSynAnalysisLink_MLPartOfSpeech','AStr')
+	self.lsgloss = getText(s,'LexSense_Gloss','AStr') 
+    
+    def toLatex(self,number=False):
+	if number:
+	    print cmd('sensenr',number,indent=1)
+	print cmd('synpos',self.synpos,indent=2).encode('utf-8')
+	print cmd('definition',self.definition,indent=3).encode('utf-8')
+	if len(self.examples) == 1:
+	    self.examples[0].toLatex()
+	else:
+	    for i,example in enumerate(self.examples): 
+		example.toLatex(number=i+1)
+	  
   
 class Example():
-  def __init__(self,x):
-    self.vernacular = False
-    try:
-      self.vernacular = x.find('.//LexExampleSentence_Example').find('.//Run').text 
-      self.translations = [Translation(t) for t in x.findall('.//CmTranslation_Translation')]
-    except AttributeError:
-      pass
-    
+    def __init__(self,x):
+	self.vernacular = False
+	try:
+	    self.vernacular = x.find('.//LexExampleSentence_Example').find('.//Run').text 
+	    self.translations = [Translation(t) for t in x.findall('.//CmTranslation_Translation')]
+	except AttributeError:
+	    pass
+      
   def toLatex(self,number=False):
-    if self.vernacular:
-      if number:
-	print cmd('exnr',number,indent=5)
-      modvernacular = self.hyphenate(self.vernacular)
-      print cmd('vernacular',self.vernacular,indent=6).encode('utf-8')
-      print cmd('modvernacular',modvernacular,indent=6).encode('utf-8')
-      for t in self.translations: 
-	t.toLatex()
+      if self.vernacular:
+	  if number:
+	      print cmd('exnr',number,indent=5)
+	modvernacular = self.hyphenate(self.vernacular)
+	print cmd('vernacular',self.vernacular,indent=6).encode('utf-8')
+	print cmd('modvernacular',modvernacular,indent=6).encode('utf-8')
+	for t in self.translations: 
+	    t.toLatex()
 	
   def hyphenate(self,s):
-    return re.sub(u"(?<![$ ])([bcdfghjkḱlĺmḿnńǹŋpṕrŕsśtvwxyz])",r"\\-\1",s)  
+      return re.sub(u"(?<![$ ])([bcdfghjkḱlĺmḿnńǹŋpṕrŕsśtvwxyz])",r"\\-\1",s)  
 
 class Translation():
-  def __init__(self,x):
-    self.string = x.find('.//Run').text 
-   
-  def toLatex(self):
-    print cmd('trs',self.string,indent=6).encode('utf-8')
-      
+    def __init__(self,x):
+	self.string = x.find('.//Run').text 
+    
+    def toLatex(self):
+	print cmd('trs',self.string,indent=6).encode('utf-8')
+	
 
 class Etymology ():
       def __init__(self,e):
@@ -162,20 +163,28 @@ class Etymology ():
 class MimimalLexReferences():
       def __init__(self,e):
 	  self.lexreflinks = [LexReflink(lrl) for lrl in e.findall('LexReferenceLink')]
+	  
       def toLatex(self):
-	  pass
+	  for l in lexreflinks:
+	      l.toLatex()
 	
 class LexReflink():
     def __init__(self,e):
 	  self.type_ = e.find('LexReferenceLink_Type/Link/Alt').attrib.get('abbr')
-	  self.targets = [(l.attrib['target'],l.find('Alt').attrib.get('sense')) for l in e.findall('LexReferenceLink_Targets/Link')]
-  
+	  self.targets = [(l.attrib['target'],l.find('Alt').attrib.get('sense')) for l in e.findall('LexReferenceLink_Targets/Link')]  
+
+    def toLatex(self):
+	  print self.type_,
+	  for t in self.targets:
+	    print "\hyperref{%s}{%s}"%t
 
 class VariantFormEntryBackRefs ():
       def __init__(self,e):
 	  self.lexentryreflinks = [LexEntryReflink(lerl) for lerl in e.findall('LexEntryRefLink')]
+      
       def toLatex(self):
-	  pass
+	  for l in self.lexentryreflinks:
+	      l.toLatex()
 	
 	
 class LexEntryReflink():
@@ -185,7 +194,7 @@ class LexEntryReflink():
 	  self.vet = e.find('LexEntryRefLink_VariantEntryTypes/Link/Alt').attrib['revabbr']
 	  
     def toLatex(self):
-	  pass
+	  print "%s\hyperref{%s}{%s}"%(self.vet,self.target,self.alt)
 	
 	 
 
