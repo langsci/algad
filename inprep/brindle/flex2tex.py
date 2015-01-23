@@ -42,6 +42,7 @@ class Headword():
     self.word = e.findall('.//Run')[0].text 
     try:
       self.homograph = e.findall('.//Run')[1].text 
+
     except IndexError:
       self.homograph = False
   
