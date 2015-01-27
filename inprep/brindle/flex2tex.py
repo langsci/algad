@@ -7,23 +7,22 @@ import re
 def cmd(c,v, indent=0):
     return indent*u' '+u"\\%s{%s}"%(c,v) 
 
+def hypercmd(command, anchor, value, indent=0):
+    return indent*u' '+u"\\hypertarget{%s}{}\n%s"%(anchor,cmd(command,value)) 
+
 def getText(e,field,strtype):
     try:
 	return e.find('%s/%s/Run'%(field,strtype)).text
     except AttributeError:
 	return False
       
-
-def label2latex(s):
-    pass
-    #return "\\hypertarget{%s}{}" % s
-
+ 
 class LexEntry():
   
     def __init__(self,e):
-	self.label = e.attrib['id']
+	self.ID = e.attrib.get('id', False)
 	self.etymology = Etymology(e.find('../LexEtymology'))
-	self.headword = Headword(e.find('LexEntry_HeadWord'))
+	self.headword = Headword(e.find('LexEntry_HeadWord'),anchor=self.ID)
 	self.literalmeaning = getText(e,'LexEntry_LiteralMeaning','AStr')
 	try:
 	    self.pronunciations = [Pronunciation(p) for p in  e.find('LexEntry_Pronunciations').findall('LexPronunciation')]
@@ -46,8 +45,7 @@ class LexEntry():
 	self.etymology.toLatex()
 	self.headword.toLatex()
 	if self.literalmeaning:
-	    print cmd('literalmeaning',self.literalmeaning)
-	#print label2latex(self.label)
+	    print cmd('literalmeaning',self.literalmeaning) 
 	if len(self.pronunciations) == 0:
 	    print '{\\fixpron}'
 	for p in self.pronunciations:
@@ -67,8 +65,9 @@ class LexEntry():
 		s.toLatex(number=i+1)
 
 class Headword():
-    def __init__(self,e):
+    def __init__(self,e,anchor=False):
 	self.word = e.findall('.//Run')[0].text 
+	self.anchor = anchor
 	try:
 	    self.homograph = e.findall('.//Run')[1].text #better use attrib named style
 	except IndexError:
@@ -79,8 +78,11 @@ class Headword():
 	if self.homograph:
 	    print "".join([cmd('homograph',self.homograph), cmd('headword',self.word)]).encode('utf-8') 
 	else:
-	    print cmd('headword',self.word).encode('utf-8') 
-
+	    if self.anchor:
+		print hypercmd('headword',self.anchor,self.word).encode('utf-8')
+	    else:
+		print cmd('headword',self.word).encode('utf-8') 
+	
     
 #class POS():
     #def __init__(self,p): 
@@ -96,12 +98,17 @@ class Headword():
 class Pronunciation():
     def __init__(self,p): 
 	self.ipa = p.find('.//Run').text 
-      
+	self.anchor = p.attrib.get('id',False)
+	
     def toLatex(self): 
-	print cmd('ipa',self.ipa, indent=1).encode('utf-8')
+	if self.anchor:
+	    print hypercmd('ipa',self.anchor,self.ipa, indent=1).encode('utf-8')
+	else:
+	    print cmd('ipa',self.ipa, indent=1).encode('utf-8')
     
 class Sense():
     def __init__(self,s):
+	self.anchor = s.attrib.get('id',False)
 	self.definition = getText(s,'LexSense_Definition','AStr')
 	self.examples = [Example(x) for x in s.findall('.//LexExampleSentence')]     
 	self.references = [LexReflink(l) for l in (s.findall('.//LexReferenceLink'))]
@@ -121,7 +128,10 @@ class Sense():
 	if self.synpos:
 	    print cmd('synpos',self.synpos,indent=2).encode('utf-8')
 	if self.definition:
-	    print cmd('definition',self.definition,indent=3).encode('utf-8')
+	    if self.anchor:
+		print hypercmd('definition',self.anchor,self.definition,indent=3).encode('utf-8')
+	    else:
+		print cmd('definition',self.definition,indent=3).encode('utf-8')
 	elif self.lsgloss:
 	    print cmd('lsgloss',self.lsgloss,indent=3).encode('utf8')
 	if len(self.examples) == 1:
@@ -145,10 +155,11 @@ class Sense():
   
 class Example():
     def __init__(self,x):
+	self.anchor = x.attrib.get('id',False)
 	self.vernacular = False
 	try:
 	    self.vernacular = x.find('.//LexExampleSentence_Example').find('.//Run').text 
-	    self.translations = [Translation(t) for t in x.findall('.//CmTranslation_Translation')]
+	    self.translations = [Translation(t) for t in x.findall('.//CmTranslation')]
 	except AttributeError:
 	    pass
       
@@ -157,21 +168,32 @@ class Example():
 	    if number:
 		print cmd('exnr',number,indent=5)
 	    modvernacular = self.hyphenate(self.vernacular)
-	    print cmd('vernacular',self.vernacular,indent=6).encode('utf-8')
-	    print cmd('modvernacular',modvernacular,indent=6).encode('utf-8')
+	    if self.anchor:
+		print hypercmd('vernacular',self.anchor,self.vernacular,indent=6).encode('utf-8') 
+		print hypercmd('modvernacular',self.anchor,modvernacular,indent=6).encode('utf-8') 
+	    else:
+	      print cmd('vernacular',self.vernacular,indent=6).encode('utf-8')
+	      print cmd('modvernacular',modvernacular,indent=6).encode('utf-8')
 	    for t in self.translations: 
 		t.toLatex()
 	  
     def hyphenate(self,s):
-	return re.sub(u"(?<![$ ])([bcdfghjkḱlĺmḿnńǹŋpṕrŕsśtvwxyz])",r"\\-\1",s)  
+	tmp = re.sub(u"(?<![ ])([bcdfghjkḱlĺmḿnńǹŋpṕrŕsśtvwxyz])(?![mpbʃʒ $])",r"\\-\1",s)  
+	return re.sub("\-(.)$",'\1',tmp)
 
 class Translation():
-    def __init__(self,x):
-	self.string = x.find('.//Run').text 
+    def __init__(self,t):
+	self.string = t.find('.//Run').text 
+	self.anchor = t.attrib.get('id',False)
     
     def toLatex(self):
-	print cmd('trs',self.string,indent=6).encode('utf-8')
+	if self.anchor:
+	    print hypercmd('trs',self.anchor,self.string, indent=6).encode('utf-8')
+	else:
+	    print cmd('trs',self.string,indent=6).encode('utf-8')
+	  
 	
+
 
 class Etymology ():
       def __init__(self,e):
@@ -206,7 +228,7 @@ class LexReflink():
     def toLatex(self):
 	  print cmd('type',self.type_)
 	  for t in self.targets:
-	    out = "\hyperref[%s]{%s}{}"%t
+	    out = "\hyperlink{%s}{%s}"%t
 	  print out.encode('utf8')
 
 class VariantFormEntryBackRefs ():
@@ -225,7 +247,7 @@ class LexEntryReflink():
 	  self.vet = e.find('LexEntryRefLink_VariantEntryTypes/Link/Alt').attrib['revabbr']
 	  
     def toLatex(self):
-	  print "%s\hyperref{%s}{%s}"%(self.vet,self.target,self.alt)
+	  print "%s\hyperlink{%s}{%s}"%(self.vet,self.target,self.alt)
 	
 	 
 
