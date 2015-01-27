@@ -37,7 +37,7 @@ class LexEntry():
 	    self.vfebr = VariantFormEntryBackRefs(e.find('VariantFormEntryBackRefs'))
 	except AttributeError:
 	    self.vfebr = False
-	self.pos = getText(e,'MoStemMsa','AStr')
+	self.pos = getText(e,'MoStemMsa/MoStemMsa_MLPartOfSpeech','AStr')
 	self.senses =  [Sense(s) for s in e.find('LexEntry_Senses').findall('LexSense')]
 	self.plural = getText(e,'LexEntry_plural_form','AStr')
     
