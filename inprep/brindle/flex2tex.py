@@ -23,6 +23,7 @@ class LexEntry():
 	self.ID = e.attrib.get('id', False)
 	self.etymology = Etymology(e.find('../LexEtymology'))
 	self.headword = Headword(e.find('LexEntry_HeadWord'),anchor=self.ID)
+	
 	self.literalmeaning = getText(e,'LexEntry_LiteralMeaning','AStr')
 	try:
 	    self.pronunciations = [Pronunciation(p) for p in  e.find('LexEntry_Pronunciations').findall('LexPronunciation')]
@@ -38,7 +39,7 @@ class LexEntry():
 	except AttributeError:
 	    self.vfebr = False
 	self.pos = getText(e,'MoStemMsa/MoStemMsa_MLPartOfSpeech','AStr')
-	self.senses =  [Sense(s) for s in e.find('LexEntry_Senses').findall('LexSense')]
+	self.senses =  [Sense(s) for s in e.findall('LexEntry_Senses/LexSense')]
 	self.plural = getText(e,'LexEntry_plural_form','AStr')
     
     def toLatex(self): 
@@ -66,12 +67,16 @@ class LexEntry():
 
 class Headword():
     def __init__(self,e,anchor=False):
-	self.word = e.findall('.//Run')[0].text 
 	self.anchor = anchor
+	self.homograph = False
+	if e == None:
+	  self.word = "no headword!"	  
+	  return
+	self.word = e.findall('.//Run')[0].text 
 	try:
 	    self.homograph = e.findall('.//Run')[1].text #better use attrib named style
 	except IndexError:
-	    self.homograph = False
+	    pass
       
     def toLatex(self):
 	print "\\newentry"
@@ -132,7 +137,7 @@ class Sense():
 		print hypercmd('definition',self.anchor,self.definition,indent=3).encode('utf-8')
 	    else:
 		print cmd('definition',self.definition,indent=3).encode('utf-8')
-	elif self.lsgloss:
+	if self.lsgloss:
 	    print cmd('lsgloss',self.lsgloss,indent=3).encode('utf8')
 	if len(self.examples) == 1:
 	    self.examples[0].toLatex()
@@ -179,7 +184,7 @@ class Example():
 	  
     def hyphenate(self,s):
 	tmp = re.sub(u"(?<![ ])([bcdfghjkḱlĺmḿnńǹŋpṕrŕsśtvwxyz])(?![mpbʃʒ $])",r"\\-\1",s)  
-	return re.sub("\-(.)$",'\1',tmp)
+	return re.sub(u"\\\\-(?=.$)",'',tmp)
 
 class Translation():
     def __init__(self,t):
@@ -259,7 +264,7 @@ root = tree.getroot()
 
 lexentries = []
 
-for entry in root.findall('LexEntry'):
+for entry in root.findall('.//LexEntry'):
   lexentries.append(LexEntry(entry))
    
 

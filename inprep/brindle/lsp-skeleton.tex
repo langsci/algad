@@ -66,7 +66,7 @@
 %%%                                              %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newpage
+\part{Grammar}
 \lipsum
 \newpage
 \part{Dictionary}
@@ -78,25 +78,29 @@
 \fancyhead[LE,LO]{\textbf{\rightmark}} 
 \fancyhead[RE,RO]{\textbf{\leftmark}}
 \renewcommand{\headrulewidth}{0pt}
-
 \fancyfoot[LE,RO]{\thepage}
-
-
-% \twocolumn
 \setlength{\columnsep}{3em}
 \setlength{\parindent}{0pt}
-% \begin{letter}{A a}
-% \include{chapters/dictionary} 
-% \end{letter}
+\renewcommand{\lsgloss}[1]{}
+\begin{letter}{A a}
+\include{chapters/dictionary} 
+\end{letter}
 
 \renewcommand{\lsgloss}[1]{\textbf{#1}\markboth{#1}{#1}}
 \renewcommand{\definition}[1]{\textbf{#1}\markboth{#1}{#1}}
 \renewcommand{\headword}[1]{{#1}}
 \renewcommand{\homograph}[1]{\textsuperscript{#1}}
+
+
+\part{Inverted Dictionary}
 \begin{letter}{I i}
 \include{chapters/inverteddictionary} 
- 
 \end{letter}
+
+% \begin{letter}{I i}
+% \include{chapters/inverteddictionary} 
+ 
+% \end{letter}
 
 
 % copy the lines above and adapt as necessary

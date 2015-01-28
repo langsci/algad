@@ -5,9 +5,11 @@ import re
 class Entry():
   def __init__(self,a):
     for l in a:
-      if 'definition' in l or 'gloss' in l:
-	self.english = l
-	continue
+      l = l.strip()
+      if 'lsgloss' in l:
+	self.gloss = l     
+      if 'definition' in l:
+	self.definition = l      
       if r'\headword' in l:
 	try:
 	  self.vernaculars.append(l)
@@ -31,11 +33,11 @@ for e in entries[1:]:
   x = Entry(a)
   #print a
   try:
-    d[x.english].append(x)
+    d[x.gloss].append(x)
   except KeyError:
-    d[x.english] = [x]
-  except AttributeError: 
-    s =  "%% error in %s"% u''.join(a)
+    d[x.gloss] = [x]
+  except AttributeError:     
+    s =  u"%% no gloss for %s" % x.vernaculars
     print s.encode('utf8')
     
 for k in sorted(d.keys()):
@@ -45,7 +47,7 @@ for k in sorted(d.keys()):
   out = []
   for e in d[k]:
     try:
-      out.append(''.join([''.join(l)
+      out.append(''.join(['~'.join(l)
       for l in zip(e.vernaculars,e.poss)]))      
     except AttributeError:
       print "%%insufficient information for %s".encode('utf8') % k
