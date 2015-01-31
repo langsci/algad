@@ -4,11 +4,16 @@ import sys
 import xml.etree.ElementTree as etree
 import re
 
+
+def hyphenate(s):
+    tmp = re.sub(u"(?<![ ])([bcdfghjkḱlĺmḿnńǹŋpṕrŕsśtvwxyz])(?![mpbʃʒ $])",r"\\-\1",s)  
+    return u'\-'+re.sub(u"\\\\-(?=.$)",'',tmp)
+  
 def cmd(c,v, indent=0):
-    return indent*u' '+u"\\%s{%s}"%(c,v) 
+    return 0*u' '+u"\\%s{%s}%%"%(c,v) 
 
 def hypercmd(command, anchor, value, indent=0):
-    return indent*u' '+u"\\hypertarget{%s}{}\n%s"%(anchor,cmd(command,value)) 
+    return 0*u' '+u"\\hypertarget{%s}{}%%\n%s"%(anchor,cmd(command,value)) 
 
 def getText(e,field,strtype):
     try:
@@ -20,8 +25,11 @@ def getText(e,field,strtype):
 class LexEntry():
   
     def __init__(self,e):
+	t = e.find('_Self')
+	if t != None:
+	  e=t
 	self.ID = e.attrib.get('id', False)
-	self.etymology = Etymology(e.find('../LexEtymology'))
+	self.etymology = Etymology(e.find('.//LexEtymology'))
 	self.headword = Headword(e.find('LexEntry_HeadWord'),anchor=self.ID)
 	
 	self.literalmeaning = getText(e,'LexEntry_LiteralMeaning','AStr')
@@ -30,35 +38,32 @@ class LexEntry():
 	except AttributeError:
 	    #print("no pronunciation for {}".format(e.attrib["id"]))
 	    self.pronunciations = []
-	try:
-	    self.mlr = MimimalLexReferences(e.find('MimimalLexReferences'))
-	except AttributeError:
-	    self.mlr = False
-	try:
-	    self.vfebr = VariantFormEntryBackRefs(e.find('VariantFormEntryBackRefs'))
-	except AttributeError:
-	    self.vfebr = False
+	self.mlr = MimimalLexReferences(e.find('_MinimalLexReferences'))
+	self.vfebr = VariantFormEntryBackRefs(e.find('_VariantFormEntryBackRefs')) 
 	self.pos = getText(e,'MoStemMsa/MoStemMsa_MLPartOfSpeech','AStr')
 	self.senses =  [Sense(s) for s in e.findall('LexEntry_Senses/LexSense')]
-	self.plural = getText(e,'LexEntry_plural_form','AStr')
+	self.plural = getText(e,'LexEntry_plural_form','Str') 
+	if self.plural:
+	  self.plural = hyphenate(self.plural)
     
     def toLatex(self): 
-	self.etymology.toLatex()
 	self.headword.toLatex()
-	if self.literalmeaning:
-	    print cmd('literalmeaning',self.literalmeaning) 
 	if len(self.pronunciations) == 0:
 	    print '{\\fixpron}'
 	for p in self.pronunciations:
 	    p.toLatex()
+	if self.literalmeaning:
+	    print cmd('literalmeaning',self.literalmeaning)   
+	self.etymology.toLatex()
 	if self.mlr:
 	    self.mlr.toLatex()
 	if self.vfebr:
 	    self.vfebr.toLatex()
 	if self.plural:
-	    print cmd("plural", self.plural)
+	    print cmd("plural", self.plural).encode('utf8')
 	if self.pos:
 	    print cmd("pos", self.pos)
+		
 	if len(self.senses)==1:
 	    self.senses[0].toLatex()
 	else:
@@ -70,7 +75,7 @@ class Headword():
 	self.anchor = anchor
 	self.homograph = False
 	if e == None:
-	  self.word = "no headword!"	  
+	  self.word = r"\error{no headword!}"	  
 	  return
 	self.word = e.findall('.//Run')[0].text 
 	try:
@@ -81,7 +86,7 @@ class Headword():
     def toLatex(self):
 	print "\\newentry"
 	if self.homograph:
-	    print "".join([cmd('homograph',self.homograph), cmd('headword',self.word)]).encode('utf-8') 
+	    print "\n".join([cmd('homograph',self.homograph), cmd('headword',self.word)]).encode('utf-8') 
 	else:
 	    if self.anchor:
 		print hypercmd('headword',self.anchor,self.word).encode('utf-8')
@@ -172,7 +177,7 @@ class Example():
 	if self.vernacular:
 	    if number:
 		print cmd('exnr',number,indent=5)
-	    modvernacular = self.hyphenate(self.vernacular)
+	    modvernacular = hyphenate(self.vernacular)
 	    if self.anchor:
 		print hypercmd('vernacular',self.anchor,self.vernacular,indent=6).encode('utf-8') 
 		print hypercmd('modvernacular',self.anchor,modvernacular,indent=6).encode('utf-8') 
@@ -182,9 +187,6 @@ class Example():
 	    for t in self.translations: 
 		t.toLatex()
 	  
-    def hyphenate(self,s):
-	tmp = re.sub(u"(?<![ ])([bcdfghjkḱlĺmḿnńǹŋpṕrŕsśtvwxyz])(?![mpbʃʒ $])",r"\\-\1",s)  
-	return re.sub(u"\\\\-(?=.$)",'',tmp)
 
 class Translation():
     def __init__(self,t):
@@ -202,9 +204,16 @@ class Translation():
 
 class Etymology ():
       def __init__(self,e):
+	self.form = False
+	self.gloss = False
+	self.source = False
+	if e == None:
+	  return
 	self.form = getText(e,'LexEtymology_Form','AStr')
 	self.gloss = getText(e,'LexEtymology_Gloss','AStr')
-	self.source = getText(e,'LexEtymology_Source','AUni')
+	src = e.find('LexEtymology_Source/AUni')
+	if src != None:
+	  self.source = src.text
   
       def toLatex(self):
 	  if self.form or self.gloss or self.source:
@@ -219,16 +228,31 @@ class Etymology ():
 
 class MimimalLexReferences():
       def __init__(self,e):
-	  self.lexreflinks = [LexReflink(lrl) for lrl in e.findall('LexReferenceLink')]
+	  if e == None:
+	    self.lexreflinks = []
+	  else:
+	    self.lexreflinks = [LexReflink(lrl) for lrl in e.findall('LexReferenceLink')]
 	  
       def toLatex(self):
-	  for l in lexreflinks:
+	  for l in self.lexreflinks:
 	      l.toLatex()
 	
 class LexReflink():
+    def getTargets(self,l):
+      t = l.attrib['target']
+      try:
+	s = l.find('Alt').attrib.get('sense')
+      except AttributeError:
+	s = r'\error{No label for link!}'
+      return (t,s)
+  
     def __init__(self,e):
+	  if e == None:
+	    self.type_ = False
+	    self.targets = []
+	    return
 	  self.type_ = e.find('LexReferenceLink_Type/Link/Alt').attrib.get('abbr')
-	  self.targets = [(l.attrib['target'],l.find('Alt').attrib.get('sense')) for l in e.findall('LexReference_Targets/Link')]  
+	  self.targets = [self.getTargets(l) for l in e.findall('LexReference_Targets/Link')]  
 
     def toLatex(self):
 	  print cmd('type',self.type_)
@@ -238,6 +262,9 @@ class LexReflink():
 
 class VariantFormEntryBackRefs ():
       def __init__(self,e):
+	  if e == None:
+	    self.lexentryreflinks = []
+	    return #FIXME
 	  self.lexentryreflinks = [LexEntryReflink(lerl) for lerl in e.findall('LexEntryRefLink')]
       
       def toLatex(self):
@@ -249,10 +276,14 @@ class LexEntryReflink():
     def __init__(self,e):
 	  self.target = e.find('LexEntryRefLink_OwningEntry/Link').attrib['target']
 	  self.alt = e.find('LexEntryRefLink_OwningEntry/Link/Alt').attrib['entry']
-	  self.vet = e.find('LexEntryRefLink_VariantEntryTypes/Link/Alt').attrib['revabbr']
+	  try:
+	    self.vet = e.find('LexEntryRef_VariantEntryTypes/Link/Alt').attrib['revabbr']
+	  except AttributeError:
+	    self.vet=''
 	  
     def toLatex(self):
-	  print "%s\hyperlink{%s}{%s}"%(self.vet,self.target,self.alt)
+	  s = " \\type{%s} \hyperlink{%s}{%s}%%"%(self.vet,self.target,self.alt)
+	  print s.encode('utf8')
 	
 	 
 
