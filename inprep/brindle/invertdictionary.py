@@ -37,19 +37,19 @@ for e in entries[1:]:
     for g in x.gloss.split(';'):
     #print a
       try:
-	d[g].append(x)
+	d[g.strip()].append(x)
       except KeyError:
-	d[g] = [x]
+	d[g.strip()] = [x]
       except AttributeError:     
 	s =  u"%% no gloss for %s" % x.vernaculars
 	print s.encode('utf8')
   except AttributeError:
     continue
       
-for k in sorted(d.keys()):
+for k in sorted(d.keys(),key=lambda s: s.lower()):
   print '%'+30*'-'
   print '\\newentry'
-  print u'\\lsgloss{%s}' % k.encode('utf8')
+  print u'\\lsgloss{%s}' % k.strip().encode('utf8')
   out = []
   for e in d[k]:
     try:
