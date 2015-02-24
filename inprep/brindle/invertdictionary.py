@@ -6,10 +6,12 @@ class Entry():
   def __init__(self,a):
     for l in a:
       l = l.strip()
+      if l.endswith('%'):
+	l = l[:-1]      
       if 'lsgloss' in l:
-	self.gloss = l     
-      if 'definition' in l:
-	self.definition = l      
+	self.gloss = l[9:][:-1]
+      #elif 'definition' in l:
+	#self.definition = l      
       if r'\headword' in l:
 	try:
 	  self.vernaculars.append(l)
@@ -31,19 +33,23 @@ for e in entries[1:]:
   #print e
   a = e.split('\n')[1:]
   x = Entry(a)
-  #print a
   try:
-    d[x.gloss].append(x)
-  except KeyError:
-    d[x.gloss] = [x]
-  except AttributeError:     
-    s =  u"%% no gloss for %s" % x.vernaculars
-    print s.encode('utf8')
-    
+    for g in x.gloss.split(';'):
+    #print a
+      try:
+	d[g].append(x)
+      except KeyError:
+	d[g] = [x]
+      except AttributeError:     
+	s =  u"%% no gloss for %s" % x.vernaculars
+	print s.encode('utf8')
+  except AttributeError:
+    continue
+      
 for k in sorted(d.keys()):
   print '%'+30*'-'
   print '\\newentry'
-  print k.encode('utf8')
+  print u'\\lsgloss{%s}' % k.encode('utf8')
   out = []
   for e in d[k]:
     try:

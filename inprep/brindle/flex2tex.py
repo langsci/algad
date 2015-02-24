@@ -4,10 +4,19 @@ import sys
 import xml.etree.ElementTree as etree
 import re
 
+CONSONANTS = u'bcdfghjkḱlĺmḿńǹŋpṕrŕsśtvwzʒ'
+VOWELS = u'aAáÁàâãāȁeéèẽēȅɛiíìĩīȉoóòõṍȭōȍɔuúùũṹūȕn'
+SECONDGLYPHS = u"mpbʃʒ $"
 
 def hyphenate(s):
-    tmp = re.sub(u"(?<![ ])([bcdfghjkḱlĺmḿnńǹŋpṕrŕsśtvwxyz])(?![mpbʃʒ $])",r"\\-\1",s)  
-    return u'\-'+re.sub(u"\\\\-(?=.$)",'',tmp)
+    p = u"(?<=[%s])([%s])(?![%s])"%(VOWELS,CONSONANTS,SECONDGLYPHS)
+    tmp = re.sub(p,r"\\-\1",s)  
+    prefix = u'\-'
+    if '\-' in tmp:
+	prefix = ''
+    tmp2 = prefix+re.sub(u"\\\\-(?=.[ ,])",u'',tmp)
+    tmp3 = re.sub(u"\\\\-(?=.$)",u'',tmp2)
+    return tmp3
   
 def cmd(c,v, indent=0):
     return 0*u' '+u"\\%s{%s}%%"%(c,v) 
@@ -145,8 +154,10 @@ class Sense():
 	if self.lsgloss:
 	    print cmd('lsgloss',self.lsgloss,indent=3).encode('utf8')
 	if len(self.examples) == 1:
+	    print '{\\startexample}'
 	    self.examples[0].toLatex()
-	else:
+	elif len(self.examples) > 1:
+	    print '{\\startexample}'
 	    for i,example in enumerate(self.examples): 
 		example.toLatex(number=i+1)
 	for r in self.references:
@@ -243,7 +254,7 @@ class LexReflink():
       try:
 	s = l.find('Alt').attrib.get('sense')
       except AttributeError:
-	s = r'\error{No label for link!}'
+	s = False
       return (t,s)
   
     def __init__(self,e):
@@ -256,8 +267,13 @@ class LexReflink():
 
     def toLatex(self):
 	  print cmd('type',self.type_)
-	  for t in self.targets:
-	    out = "\hyperlink{%s}{%s}"%t
+	  for t,s in self.targets:
+	    if not s:
+		try:
+		    s = linkd[t]
+		except KeyError:
+		    s = '\\error{No label for link!}'		
+	    out = "\hyperlink{%s}{%s}"%(t,s)
 	  print out.encode('utf8')
 
 class VariantFormEntryBackRefs ():
@@ -297,6 +313,12 @@ lexentries = []
 
 for entry in root.findall('.//LexEntry'):
   lexentries.append(LexEntry(entry))
+  
+linkd = {}
+for le in lexentries:
+  ID = le.ID
+  headword = le.headword.word
+  linkd[le.ID] = headword
    
 
 for le in lexentries:
