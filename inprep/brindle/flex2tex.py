@@ -49,6 +49,7 @@ class LexEntry():
 	    self.pronunciations = []
 	self.mlr = MimimalLexReferences(e.find('_MinimalLexReferences'))
 	self.vfebr = VariantFormEntryBackRefs(e.find('_VariantFormEntryBackRefs')) 
+	self.vver = VisibleVariantEntryRef(e.find('_VisibleVariantEntryRefs')) 
 	self.pos = getText(e,'MoStemMsa/MoStemMsa_MLPartOfSpeech','AStr')
 	self.senses =  [Sense(s) for s in e.findall('LexEntry_Senses/LexSense')]
 	self.plural = getText(e,'LexEntry_plural_form','Str') 
@@ -57,8 +58,8 @@ class LexEntry():
     
     def toLatex(self): 
 	self.headword.toLatex()
-	if len(self.pronunciations) == 0:
-	    print '{\\fixpron}'
+	if len(self.pronunciations) == 0 and len(self.vver.lexentryreflinks)==0:
+	    print '{\\fixpron}','%%',self.vver.lexentryreflinks
 	for p in self.pronunciations:
 	    p.toLatex()
 	if self.literalmeaning:
@@ -68,6 +69,8 @@ class LexEntry():
 	    self.mlr.toLatex()
 	if self.vfebr:
 	    self.vfebr.toLatex()
+	if self.vver:
+	    self.vver.toLatex()
 	if self.plural:
 	    print cmd("plural", self.plural).encode('utf8')
 	if self.pos:
@@ -286,7 +289,34 @@ class VariantFormEntryBackRefs ():
       def toLatex(self):
 	  for l in self.lexentryreflinks:
 	      l.toLatex()
+
+class VisibleVariantEntryRef ():
+      def __init__(self,e): 
+	  if e==None:
+	    self.lexentryreflinks = []
+	    return
+	  
+	  self.lexentryreflinks = [LexEntryReflinkV(lerlv) for lerlv in e.findall('LexEntryRefLink')]
+      
+      def toLatex(self):
+	  for l in self.lexentryreflinks:
+	      l.toLatex()
 	
+
+class LexEntryReflinkV():
+    def __init__(self,e):
+	  self.target = e.attrib.get('target','\\error{no target}')
+	  try:
+	    self.vet = e.find('LexEntryRef_VariantEntryTypes/Link/Alt').attrib['abbr']
+	  except AttributeError:
+	    self.vet=''
+	  self.cl = e.find('LexEntryRef_ComponentLexemes/Link').attrib['target']
+	    
+	  
+    def toLatex(self):
+	  s = " \\type{%s}\hyperlink{%s}{%s}%%"%(self.vet,self.cl,linkd.get(self.cl,'\\error{no label for link!}'))
+	  print s.encode('utf8')
+		
 	
 class LexEntryReflink():
     def __init__(self,e):
