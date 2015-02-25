@@ -132,7 +132,7 @@ class Sense():
 	self.examples = [Example(x) for x in s.findall('.//LexExampleSentence')]     
 	self.references = [LexReflink(l) for l in (s.findall('.//LexReferenceLink'))]
 	self.scientificname = getText(s,'LexSense_ScientificName','Str')
-	self.usagetypes = [a.attrib['name'] for a in (s.findall('LexSense_UsageTypes/Link/Alt'))]
+	self.usagetypes = [a.attrib.get('name', None) for a in (s.findall('LexSense_UsageTypes/Link/Alt'))]
 	try:
 	    self.lsveferbs = [Veferbs(l) for l in (s.find('LexEntryRef_VariantEntryTypes'))]
 	except TypeError:
