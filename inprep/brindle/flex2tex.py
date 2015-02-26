@@ -277,7 +277,7 @@ class LexReflink():
 		except KeyError:
 		    s = '\\error{No label for link!}'		
 	    out = "\hyperlink{%s}{%s}"%(t,s)
-	  print out.encode('utf8')
+	    print out.encode('utf8')
 
 class VariantFormEntryBackRefs ():
       def __init__(self,e):
