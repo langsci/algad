@@ -64,23 +64,22 @@ class LexEntry():
 	    p.toLatex()
 	if self.literalmeaning:
 	    print cmd('literalmeaning',self.literalmeaning)   
-	self.etymology.toLatex()
+	if self.pos:
+	    print cmd("pos", self.pos)
 	if self.mlr:
 	    self.mlr.toLatex()
 	if self.vfebr:
 	    self.vfebr.toLatex()
 	if self.vver:
-	    self.vver.toLatex()
-	if self.plural:
-	    print cmd("plural", self.plural).encode('utf8')
-	if self.pos:
-	    print cmd("pos", self.pos)
-		
+	    self.vver.toLatex()		
 	if len(self.senses)==1:
 	    self.senses[0].toLatex()
 	else:
 	    for i,s in enumerate(self.senses):
 		s.toLatex(number=i+1)
+	self.etymology.toLatex()
+	if self.plural:
+	    print cmd("plural", self.plural).encode('utf8')
 
 class Headword():
     def __init__(self,e,anchor=False):
@@ -136,10 +135,6 @@ class Sense():
 	self.references = [LexReflink(l) for l in (s.findall('.//LexReferenceLink'))]
 	self.scientificname = getText(s,'LexSense_ScientificName','Str')
 	self.usagetypes = [a.attrib.get('name', None) for a in (s.findall('LexSense_UsageTypes/Link/Alt'))]
-	try:
-	    self.lsveferbs = [Veferbs(l) for l in (s.find('LexEntryRef_VariantEntryTypes'))]
-	except TypeError:
-	    self.lsveferbs = []
 	self.lfg = getText(s,'LexSense_lexical_function_glosses','Str')
 	self.synpos = getText(s,'MoMorphSynAnalysisLink_MLPartOfSpeech','AStr')
 	self.lsgloss = getText(s,'LexSense_Gloss','AStr') 
@@ -169,13 +164,12 @@ class Sense():
 	    print cmd('sciname',self.scientificname)
 	for u in self.usagetypes:
 	    print cmd('usage',u)
-	for l in self.lsveferbs:
-	    l.toLatex()
 	#if self.synpos:
 	    #print cmd('pos',self.synpos)
 	#if self.lsgloss:
 	    #print cmd('lsgloss',self.lsgloss)
 	  
+ 
   
 class Example():
     def __init__(self,x):
@@ -266,18 +260,24 @@ class LexReflink():
 	    self.targets = []
 	    return
 	  self.type_ = e.find('LexReferenceLink_Type/Link/Alt').attrib.get('abbr')
+	  if self.type_ == None:
+	    self.type_ = e.find('LexReferenceLink_Type/Link/Alt').attrib.get('revabbr')	  
+	  try:
+	    self.type_ = self.type_.replace('.','').replace(' ','')
+	  except AttributeError:
+	    self.type_='empty'
 	  self.targets = [self.getTargets(l) for l in e.findall('LexReference_Targets/Link')]  
 
     def toLatex(self):
-	  print cmd('type',self.type_)
-	  for t,s in self.targets:
-	    if not s:
-		try:
-		    s = linkd[t]
-		except KeyError:
-		    s = '\\error{No label for link!}'		
-	    out = "\hyperlink{%s}{%s}"%(t,s)
-	    print out.encode('utf8')
+	targets = ''
+	for t,s in self.targets:
+	  if not s:
+	      try:
+		  s = linkd[t]
+	      except KeyError:
+		  s = '\\error{No label for link!}'		
+	  targets += "\hyperlink{%s}{%s}"%(t,s)	
+	print cmd('type%s'%self.type_,targets).encode('utf8')
 
 class VariantFormEntryBackRefs ():
       def __init__(self,e):
@@ -302,21 +302,6 @@ class VisibleVariantEntryRef ():
 	  for l in self.lexentryreflinks:
 	      l.toLatex()
 	
-
-class LexEntryReflinkV():
-    def __init__(self,e):
-	  self.target = e.attrib.get('target','\\error{no target}')
-	  try:
-	    self.vet = e.find('LexEntryRef_VariantEntryTypes/Link/Alt').attrib['abbr']
-	  except AttributeError:
-	    self.vet=''
-	  self.cl = e.find('LexEntryRef_ComponentLexemes/Link').attrib['target']
-	    
-	  
-    def toLatex(self):
-	  s = " \\type{%s}\hyperlink{%s}{%s}%%"%(self.vet,self.cl,linkd.get(self.cl,'\\error{no label for link!}'))
-	  print s.encode('utf8')
-		
 	
 class LexEntryReflink():
     def __init__(self,e):
@@ -325,13 +310,30 @@ class LexEntryReflink():
 	  try:
 	    self.vet = e.find('LexEntryRef_VariantEntryTypes/Link/Alt').attrib['revabbr']
 	  except AttributeError:
-	    self.vet=''
+	    self.vet='empty'
+	  self.vet=self.vet.replace('.','').replace(' ','')
 	  
     def toLatex(self):
-	  s = " \\type{%s} \hyperlink{%s}{%s}%%"%(self.vet,self.target,self.alt)
+	  s = "\\type%s{\hyperlink{%s}{%s}}%%"%(self.vet,self.target,self.alt)
 	  print s.encode('utf8')
 	
 	 
+
+class LexEntryReflinkV():
+    def __init__(self,e):
+	  self.target = e.attrib.get('target','\\error{no target}')
+	  try:
+	    self.vet = e.find('LexEntryRef_VariantEntryTypes/Link/Alt').attrib['abbr']
+	  except AttributeError:
+	    self.vet=''	  
+	  self.vet=self.vet.replace('.','').replace(' ','')
+	  self.cl = e.find('LexEntryRef_ComponentLexemes/Link').attrib['target']
+	    
+	  
+    def toLatex(self):
+	  s = " \\type%s{\hyperlink{%s}{%s}}%%"%(self.vet,self.cl,linkd.get(self.cl,'\\error{no label for link!}'))
+	  print s.encode('utf8')
+		
 
 #===================
 
