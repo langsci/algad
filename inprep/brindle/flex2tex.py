@@ -134,7 +134,7 @@ class Sense():
 	self.examples = [Example(x) for x in s.findall('.//LexExampleSentence')]     
 	self.references = [LexReflink(l) for l in (s.findall('.//LexReferenceLink'))]
 	self.scientificname = getText(s,'LexSense_ScientificName','Str')
-	self.usagetypes = [a.attrib.get('name', None) for a in (s.findall('LexSense_UsageTypes/Link/Alt'))]
+	self.usagetypes = [a.attrib.get('abbr', None) for a in (s.findall('LexSense_UsageTypes/Link/Alt'))]
 	self.lfg = getText(s,'LexSense_lexical_function_glosses','Str')
 	self.synpos = getText(s,'MoMorphSynAnalysisLink_MLPartOfSpeech','AStr')
 	self.lsgloss = getText(s,'LexSense_Gloss','AStr') 
